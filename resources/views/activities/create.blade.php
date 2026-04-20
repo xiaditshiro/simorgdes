@@ -86,16 +86,53 @@
 
                 <div>
                     <label class="block mb-2 text-sm text-slate-400">Pilih Lokasi di Map</label>
-                    <div id="map" class="w-full rounded-xl border border-slate-700 z-0" style="height: 350px;"></div>
-                    <p class="text-[10px] text-slate-500 mt-2 italic">* Lingkaran biru menunjukkan area jangkauan absensi.</p>
-                </div>
+                    
+                    <div class="relative w-full rounded-xl overflow-hidden border border-slate-700 shadow-inner" style="height: 400px;">
+                        {{-- Map Container --}}
+                        <div id="map" class="absolute inset-0 z-0" style="height: 100%; width: 100%;"></div>
 
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="getLocation()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600/20 border border-emerald-600/30 text-emerald-400 rounded-xl hover:bg-emerald-600/30 transition-all text-xs font-semibold">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        Ambil Lokasi Saat Ini (GPS)
-                    </button>
-                    <span id="geo-status" class="text-xs text-slate-500 italic"></span>
+                        {{-- Floating Top Controls: Search --}}
+                        <div class="absolute top-4 left-4 right-14 max-w-sm sm:max-w-md" style="z-index: 1000;">
+                            <div class="flex gap-2 p-1.5 rounded-2xl shadow-xl" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: none;">
+                                <input type="text" id="map-search" autocomplete="off" placeholder="Cari tempat atau alamat..." 
+                                    class="flex-1 w-full bg-transparent px-3 py-1.5 text-sm" 
+                                    style="min-width: 0; color: #0f172a !important; border: none !important; outline: none !important; box-shadow: none !important;">
+                                <button type="button" onclick="searchLocation()" id="btn-search-map"
+                                    class="px-4 py-1.5 rounded-xl transition-all text-sm font-medium shadow-md" 
+                                    style="background-color: #2563eb; color: white; border: none;">
+                                    Cari
+                                </button>
+                            </div>
+                            {{-- Suggestions Dropdown --}}
+                            <div id="search-suggestions" class="absolute left-0 right-0 mt-2 hidden max-h-60 overflow-y-auto rounded-xl border border-slate-700 bg-[#0d1320]/95 backdrop-blur-lg shadow-2xl custom-scrollbar py-2" style="z-index: 2000;">
+                            </div>
+                        </div>
+
+                        {{-- Floating Bottom Right Controls --}}
+                        <div class="absolute bottom-6 right-4 flex flex-col gap-3" style="z-index: 1000;">
+                            {{-- My Location Button --}}
+                            <button type="button" onclick="getLocation()" title="Ambil Lokasi Saat Ini (GPS)"
+                                class="flex items-center justify-center w-12 h-12 bg-[#0b1220]/80 backdrop-blur-md border border-emerald-500/30 text-emerald-400 rounded-full hover:bg-emerald-500 hover:text-white hover:border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                            
+                            {{-- Map Layer Toggle Button --}}
+                            <button type="button" onclick="toggleMapLayer()" id="btn-layer-toggle" title="Ubah Tampilan Satelit"
+                                class="flex items-center justify-center w-12 h-12 bg-[#0b1220]/80 backdrop-blur-md border border-cyan-500/30 text-cyan-400 rounded-full hover:bg-cyan-500 hover:text-white hover:border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-[10px] text-slate-500 italic">* Lingkaran biru menunjukkan area jangkauan absensi.</p>
+                        <span id="geo-status" class="text-xs text-slate-500 italic"></span>
+                    </div>
                 </div>
 
                 <div>
@@ -146,6 +183,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
     let map, marker, radiusCircle;
+    let darkLayer, satelliteLayer;
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
     const radiusInput = document.getElementById('radius_meter');
@@ -153,17 +191,35 @@
 
     function initMap() {
         // Default Center: Indonesia
-        const defaultLat = -2.5489;
-        const defaultLng = 118.0149;
-        const initialZoom = 5;
+        let defaultLat = -2.5489;
+        let defaultLng = 118.0149;
+        let initialZoom = 5;
 
-        map = L.map('map').setView([defaultLat, defaultLng], initialZoom);
+        // If data already exists
+        if (latInput && latInput.value && lngInput.value) {
+            defaultLat = parseFloat(latInput.value);
+            defaultLng = parseFloat(lngInput.value);
+            initialZoom = 15;
+        }
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        map = L.map('map', {
+            zoomControl: false // move zoom control
+        }).setView([defaultLat, defaultLng], initialZoom);
+
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+        darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 20
-        }).addTo(map);
+        });
+
+        satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19
+        });
+
+        darkLayer.addTo(map);
 
         // Click event to place marker
         map.on('click', function(e) {
@@ -239,6 +295,16 @@
         }
     }
 
+    function toggleMapLayer() {
+        if (map.hasLayer(darkLayer)) {
+            map.removeLayer(darkLayer);
+            satelliteLayer.addTo(map);
+        } else {
+            map.removeLayer(satelliteLayer);
+            darkLayer.addTo(map);
+        }
+    }
+
     function getLocation() {
         const btn = event.currentTarget;
         const status = document.getElementById('geo-status');
@@ -266,6 +332,128 @@
             { enableHighAccuracy: true }
         );
     }
+
+    // --- Smart Autocomplete Logic ---
+    let searchTimeout;
+    const searchInput = document.getElementById('map-search');
+    const suggestionsBox = document.getElementById('search-suggestions');
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value;
+
+        if (query.length < 3) {
+            suggestionsBox.classList.add('hidden');
+            return;
+        }
+
+        searchTimeout = setTimeout(() => {
+            fetchSuggestions(query);
+        }, 500); // 500ms debounce
+    });
+
+    function fetchSuggestions(query) {
+        // Bias results to current map view if possible
+        const viewbox = map.getBounds();
+        const viewboxParam = `${viewbox.getWest()},${viewbox.getNorth()},${viewbox.getEast()},${viewbox.getSouth()}`;
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&bounded=1&viewbox=${viewboxParam}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length > 0) {
+                    renderSuggestions(data);
+                } else {
+                    // Try again without bounding if no results
+                    return fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+                }
+            })
+            .then(res => res ? res.json() : null)
+            .then(data => {
+                if (data) renderSuggestions(data);
+            })
+            .catch(err => console.error('Suggestion error:', err));
+    }
+
+    function renderSuggestions(data) {
+        suggestionsBox.innerHTML = '';
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'px-4 py-3 hover:bg-cyan-500/10 cursor-pointer border-b border-slate-800/50 last:border-0 transition';
+            const name = item.display_name.split(',')[0];
+            const address = item.display_name.split(',').slice(1).join(',').trim();
+            
+            div.innerHTML = `
+                <div class="text-sm font-semibold text-white">${name}</div>
+                <div class="text-[11px] text-slate-400 truncate">${address}</div>
+            `;
+            
+            div.onclick = () => {
+                searchInput.value = name;
+                updateLocation(item.lat, item.lon, true);
+                if (!locNameInput.value) locNameInput.value = name;
+                suggestionsBox.classList.add('hidden');
+            };
+            
+            suggestionsBox.appendChild(div);
+        });
+        suggestionsBox.classList.remove('hidden');
+    }
+
+    // Hide suggestions on outside click
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.classList.add('hidden');
+        }
+    });
+
+    function searchLocation() {
+        const query = searchInput.value;
+        const btn = document.getElementById('btn-search-map');
+        
+        if (!query) return;
+        suggestionsBox.classList.add('hidden');
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="inline-block animate-spin mr-1">⌛</span>';
+        btn.disabled = true;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+            .then(res => {
+                if (!res.ok) {
+                    if (res.status === 429) throw new Error('Terlalu banyak permintaan (Throttled). Tunggu sebentar.');
+                    throw new Error('Gagal menghubungi server peta.');
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.length > 0) {
+                    const result = data[0];
+                    updateLocation(result.lat, result.lon, true);
+                    
+                    if (!locNameInput.value) {
+                        locNameInput.value = result.display_name.split(',')[0];
+                    }
+                } else {
+                    alert('Lokasi tidak ditemukan. Coba gunakan nama yang lebih spesifik.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Kesalahan: ' + err.message);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+    }
+
+    // Allow search on Enter
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchLocation();
+        }
+    });
 
     // Initialize Map
     document.addEventListener('DOMContentLoaded', () => {
