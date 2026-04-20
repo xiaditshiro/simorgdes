@@ -2,6 +2,75 @@
 
 @section('content')
 
+    <style>
+        /* Custom UI for html5-qrcode scanner to match our premium dark mode */
+        #reader {
+            border: none !important;
+            background: transparent !important;
+        }
+        #reader__dashboard_section_csr span, 
+        #reader__dashboard_section_csr div {
+            color: #cbd5e1 !important; /* text-slate-300 */
+            font-size: 14px !important;
+            margin-bottom: 8px !important;
+            font-weight: 500 !important;
+        }
+        #reader select {
+            width: 100% !important;
+            background-color: #111827 !important;
+            color: white !important;
+            border: 1px solid #334155 !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            font-size: 14px !important;
+            outline: none !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            margin-bottom: 15px !important;
+        }
+        #reader select:focus {
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2) !important;
+        }
+        #reader button {
+            background: linear-gradient(to right, #06b6d4, #2563eb) !important;
+            color: white !important;
+            border: none !important;
+            padding: 12px 24px !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
+            margin-top: 5px !important;
+            width: 100% !important;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2) !important;
+        }
+        #reader button:hover {
+            opacity: 0.9 !important;
+            transform: translateY(-1px) !important;
+        }
+        #reader a {
+            color: #38bdf8 !important; /* text-sky-400 */
+            text-decoration: none !important;
+            font-size: 13px !important;
+            transition: color 0.2s !important;
+            display: inline-block !important;
+            margin-top: 10px !important;
+        }
+        #reader a:hover {
+            color: #7dd3fc !important; /* text-sky-300 */
+            text-decoration: underline !important;
+        }
+        #reader__scan_region {
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            margin-top: 20px !important;
+        }
+        #reader__dashboard_section_swaplink {
+            text-align: center !important;
+        }
+    </style>
+
     <div class="space-y-6">
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -48,14 +117,17 @@
             </div>
         @endif
 
-        <div id="scan-popup-overlay"
-            class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div id="scan-popup-overlay" style="z-index: 9999;"
+            class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center transition-opacity duration-300">
 
-            <div id="scan-popup" class="bg-white rounded-xl shadow-xl p-6 w-80 text-center">
+            <div id="scan-popup" class="bg-gradient-to-b from-[#111827] to-[#0b1220] border border-slate-700/50 rounded-3xl shadow-2xl p-8 w-80 sm:w-96 text-center mx-4 transform scale-95 opacity-0 transition-all duration-300 ease-out">
 
-                <div id="popup-icon" class="text-4xl mb-3"></div>
+                <div id="popup-icon-container" class="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-5 shadow-inner">
+                    <div id="popup-icon" class="text-4xl drop-shadow-lg"></div>
+                </div>
 
-                <div id="popup-message" class="text-lg font-semibold"></div>
+                <h3 id="popup-title" class="text-2xl font-bold text-white tracking-tight mb-2"></h3>
+                <div id="popup-message" class="text-sm text-slate-400 font-medium leading-relaxed"></div>
 
             </div>
         </div>
@@ -67,8 +139,14 @@
             <div class="flex flex-wrap gap-3">
                 <button type="button" id="toggle-scanner"
                     class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-medium text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:scale-[1.02] transition">
-                    Scan QR Absensi
+                    Scan Anggota (Admin Scan QR Anggota)
                 </button>
+
+                <a href="{{ route('activities.qr', $activity->id) }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 px-5 py-3 text-sm font-medium text-slate-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                    Buka QR Kegiatan (Untuk Scan Mandiri Anggota)
+                </a>
             </div>
 
             <div id="scanner-wrapper" class="hidden rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 shadow-lg p-6">
@@ -160,23 +238,44 @@
         const popup = document.getElementById('scan-popup');
 
         function showPopup(message, success = true) {
-
             const overlay = document.getElementById('scan-popup-overlay');
+            const popup = document.getElementById('scan-popup');
+            const popupIconContainer = document.getElementById('popup-icon-container');
             const popupIcon = document.getElementById('popup-icon');
+            const popupTitle = document.getElementById('popup-title');
             const popupMessage = document.getElementById('popup-message');
 
             overlay.classList.remove('hidden');
+            
+            // Trigger reflow to restart animation
+            void popup.offsetWidth;
+            
+            popup.classList.remove('scale-95', 'opacity-0');
+            popup.classList.add('scale-100', 'opacity-100');
 
             if (success) {
-                popupIcon.innerHTML = "✅";
+                popupIconContainer.className = "mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-5 shadow-inner bg-emerald-500/20 border border-emerald-500/30";
+                popupIcon.innerHTML = "✨";
+                popupTitle.innerHTML = "Berhasil";
+                popupTitle.className = "text-2xl font-bold text-emerald-400 tracking-tight mb-2 drop-shadow-sm";
                 popupMessage.innerHTML = message;
             } else {
-                popupIcon.innerHTML = "❌";
+                popupIconContainer.className = "mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-5 shadow-inner bg-rose-500/20 border border-rose-500/30";
+                popupIcon.innerHTML = "⚠️";
+                popupTitle.innerHTML = "Peringatan";
+                popupTitle.className = "text-2xl font-bold text-rose-400 tracking-tight mb-2 drop-shadow-sm";
                 popupMessage.innerHTML = message;
             }
 
+            // Hide after 2.5 seconds
             setTimeout(() => {
-                overlay.classList.add('hidden');
+                popup.classList.remove('scale-100', 'opacity-100');
+                popup.classList.add('scale-95', 'opacity-0');
+                
+                // Wait for CSS transition to finish before hiding overlay
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
             }, 2500);
         }
 

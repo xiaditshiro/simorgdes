@@ -22,8 +22,7 @@
                     @forelse($payments as $payment)
                         <tr class="hover:bg-slate-800/40 transition-colors">
                             <td class="px-6 py-4">
-                                <div class="font-medium text-white">{{ $payment->schedule->title }}</div>
-                                <div class="text-xs text-slate-500 mt-0.5">{{ $payment->schedule->group->title ?? '' }}</div>
+                                <div class="font-medium text-white">{{ $payment->schedule->group->title ?? '-' }}</div>
                             </td>
 
                             <td class="px-6 py-4 text-slate-400">
@@ -31,7 +30,7 @@
                             </td>
 
                             <td class="px-6 py-4 font-semibold text-cyan-400">
-                                Rp {{ number_format($payment->schedule->amount, 0, ',', '.') }}
+                                Rp {{ number_format($payment->schedule->group->amount ?? 0, 0, ',', '.') }}
                             </td>
 
                             <td class="px-6 py-4 text-center">

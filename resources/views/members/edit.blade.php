@@ -2,9 +2,9 @@
 
 @section('content')
     <div class="max-w-4xl mx-auto space-y-6">
-        <div>
-            <h2 class="text-3xl font-bold text-white">Edit Anggota</h2>
-            <p class="text-slate-400">Perbarui data anggota organisasi.</p>
+        <div> 
+            <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Edit Anggota</h2>
+            <p class="text-sm text-slate-400 mt-1.5">Perbarui data anggota organisasi.</p>
         </div>
 
         <div class="bg-[#0b1220] border border-slate-700/60 rounded-2xl shadow-xl p-8">
@@ -26,11 +26,14 @@
                     <div>
                         <label class="block mb-2 text-sm font-medium text-slate-400">Organisasi</label>
                         <select name="organization_id"
-                            class="w-full rounded-xl border border-slate-700 bg-[#111827] px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition">
-                            <option value="">-- Pilih Organisasi --</option>
+                            class="w-full rounded-xl border border-slate-700 bg-[#111827] px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition"
+                            @if($organizations->count() == 1) style="pointer-events: none; opacity: 0.8;" tabindex="-1" @endif>
+                            @if($organizations->count() > 1)
+                                <option value="">-- Pilih Organisasi --</option>
+                            @endif
                             @foreach($organizations as $organization)
                                 <option value="{{ $organization->id }}"
-                                    {{ old('organization_id', $member->organization_id) == $organization->id ? 'selected' : '' }}>
+                                    {{ old('organization_id', $member->organization_id) == $organization->id ? 'selected' : ($organizations->count() == 1 ? 'selected' : '') }}>
                                     {{ $organization->name }}
                                 </option>
                             @endforeach
@@ -130,4 +133,4 @@
             </form>
         </div>
     </div>
-@endsection
+@endsection

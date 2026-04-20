@@ -66,7 +66,7 @@
             <h3 class="text-lg font-semibold text-white mb-4">Kegiatan Terbaru</h3>
 
             @if($latestActivities->count())
-                <div class="overflow-x-auto rounded-2xl border border-slate-700/50">
+                <div class="max-h-64 overflow-y-auto overflow-x-auto rounded-2xl border border-slate-700/50 custom-scrollbar">
                     <table class="w-full text-sm text-left">
                         <thead class="bg-[#111827] text-slate-300">
                             <tr>

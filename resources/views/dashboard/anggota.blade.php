@@ -123,35 +123,37 @@
             <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
                 <h3 class="text-lg font-semibold text-white mb-4">Kegiatan Terbaru Organisasi</h3>
 
-                @forelse($latestActivities as $activity)
-                    <div class="border-b border-slate-700/50 py-3">
-                        <div class="font-semibold text-white">
-                            {{ $activity->title }}
-                        </div>
+                <div class="max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                    @forelse($latestActivities as $activity)
+                        <div class="border-b border-slate-700/50 py-3">
+                            <div class="font-semibold text-white">
+                                {{ $activity->title }}
+                            </div>
 
-                        <div class="text-sm text-slate-400">
-                            Tanggal: {{ $activity->activity_date }}
-                        </div>
+                            <div class="text-sm text-slate-400">
+                                Tanggal: {{ $activity->activity_date }}
+                            </div>
 
-                        <div class="mt-2">
-                            @if($activity->status === 'selesai')
-                                <span class="inline-block rounded-full bg-emerald-500/20 text-emerald-400 px-3 py-1 text-xs font-semibold border border-emerald-500/30">
-                                    {{ ucfirst($activity->status) }}
-                                </span>
-                            @elseif($activity->status === 'berlangsung')
-                                <span class="inline-block rounded-full bg-blue-500/20 text-blue-400 px-3 py-1 text-xs font-semibold border border-blue-500/30">
-                                    {{ ucfirst($activity->status) }}
-                                </span>
-                            @else
-                                <span class="inline-block rounded-full bg-yellow-500/20 text-yellow-400 px-3 py-1 text-xs font-semibold border border-yellow-500/30">
-                                    {{ ucfirst($activity->status) }}
-                                </span>
-                            @endif
+                            <div class="mt-2">
+                                @if($activity->status === 'selesai')
+                                    <span class="inline-block rounded-full bg-emerald-500/20 text-emerald-400 px-3 py-1 text-xs font-semibold border border-emerald-500/30">
+                                        {{ ucfirst($activity->status) }}
+                                    </span>
+                                @elseif($activity->status === 'berlangsung')
+                                    <span class="inline-block rounded-full bg-blue-500/20 text-blue-400 px-3 py-1 text-xs font-semibold border border-blue-500/30">
+                                        {{ ucfirst($activity->status) }}
+                                    </span>
+                                @else
+                                    <span class="inline-block rounded-full bg-yellow-500/20 text-yellow-400 px-3 py-1 text-xs font-semibold border border-yellow-500/30">
+                                        {{ ucfirst($activity->status) }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                @empty
-                    <p class="text-slate-400">Belum ada kegiatan terbaru.</p>
-                @endforelse
+                    @empty
+                        <p class="text-slate-400">Belum ada kegiatan terbaru.</p>
+                    @endforelse
+                </div>
             </div>
 
         @endif

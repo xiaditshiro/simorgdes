@@ -13,6 +13,8 @@ use App\Http\Controllers\FinancialTransactionController;
 use App\Http\Controllers\FinancialCategoryController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ProposalMessageController;
+use App\Http\Controllers\WhatsAppWebhookController;
+use App\Http\Controllers\SystemSettingController;
 
 
 Route::get('/', function () {
@@ -66,6 +68,22 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::resource('organizations', OrganizationController::class);
 
     Route::resource('users', UserController::class);
+
+    // Advance Settings
+    Route::get('/admin/advance', [SystemSettingController::class, 'advanceIndex'])
+        ->name('admin.settings.advance');
+    Route::post('/admin/advance/chatbot', [SystemSettingController::class, 'updateChatbot'])
+        ->name('admin.settings.chatbot.update');
+    Route::post('/admin/advance/receipt', [SystemSettingController::class, 'updateReceipt'])
+        ->name('admin.settings.receipt.update');
+    Route::post('/admin/advance/maintenance', [SystemSettingController::class, 'updateMaintenance'])
+        ->name('admin.settings.maintenance.update');
+    Route::post('/admin/advance/standby', [SystemSettingController::class, 'updateStandbyMessage'])
+        ->name('admin.settings.standby.update');
+    Route::get('/admin/advance/wa-check', [SystemSettingController::class, 'checkWhatsApp'])
+        ->name('admin.settings.wa.check');
+    Route::delete('/admin/advance/logs', [SystemSettingController::class, 'clearWebhookLogs'])
+        ->name('admin.settings.logs.clear');
 });
 
 
@@ -290,6 +308,23 @@ Route::middleware(['auth', 'role:super_admin,admin_desa,ketua,sekretaris,bendaha
 Route::middleware(['auth'])->group(function () {
     Route::get('/my-attendance-qr', [ActivityAttendanceController::class, 'myQr'])
         ->name('attendance.my-qr');
+
+    // NEW: Member Self Check-in with GPS
+    Route::get('/attendance/scan', [ActivityAttendanceController::class, 'selfScanner'])
+        ->name('attendance.self-scanner');
+    Route::post('/attendance/scan', [ActivityAttendanceController::class, 'selfScanStore'])
+        ->name('attendance.self-scan.store');
+    
+    // NEW: Admin shows Activity QR
+    Route::get('/activities/{activity}/qr', [ActivityAttendanceController::class, 'showActivityQr'])
+        ->name('activities.qr');
+
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';
+
+Route::match(['get', 'post'], '/webhook/whatsapp', [WhatsAppWebhookController::class, 'handle'])
+    ->name('webhook.whatsapp');

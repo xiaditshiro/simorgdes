@@ -16,7 +16,8 @@ class FinancialTransactionController extends Controller
             'organization',
             'creator',
             'cashPayment.member'
-        ])->latest('transaction_date');
+        ])->orderBy('transaction_date', 'desc')
+          ->orderBy('id', 'desc');
 
         if (!$user->hasRole('super_admin') && !$user->hasRole('admin_desa')) {
             $query->where('organization_id', $user->organization_id);
@@ -54,7 +55,7 @@ class FinancialTransactionController extends Controller
             'organization_id' => 'required|exists:organizations,id',
             'transaction_date' => 'required|date',
             'type' => 'required|in:income,expense',
-            'category' => 'nullable|string|max:255',
+            'category_id' => 'nullable|exists:financial_categories,id',
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:1',
         ]);
@@ -63,6 +64,15 @@ class FinancialTransactionController extends Controller
 
         if (!$user->hasRole('super_admin') && !$user->hasRole('admin_desa')) {
             $validated['organization_id'] = $user->organization_id;
+        }
+
+        if ($request->category_id) {
+            $category = \App\Models\FinancialCategory::find($request->category_id);
+            $validated['category'] = $category->name;
+            // Force type to match category type
+            $validated['type'] = $category->type;
+        } else {
+            $validated['category'] = null;
         }
 
         $validated['source'] = 'manual';
@@ -76,8 +86,6 @@ class FinancialTransactionController extends Controller
 
     public function edit(FinancialTransaction $finance)
     {
-
-
         $user = auth()->user();
 
         if (
@@ -101,8 +109,6 @@ class FinancialTransactionController extends Controller
 
     public function update(Request $request, FinancialTransaction $finance)
     {
-
-
         $user = auth()->user();
 
         if (
@@ -117,13 +123,22 @@ class FinancialTransactionController extends Controller
             'organization_id' => 'required|exists:organizations,id',
             'transaction_date' => 'required|date',
             'type' => 'required|in:income,expense',
-            'category' => 'nullable|string|max:255',
+            'category_id' => 'nullable|exists:financial_categories,id',
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:1',
         ]);
 
         if (!$user->hasRole('super_admin') && !$user->hasRole('admin_desa')) {
             $validated['organization_id'] = $user->organization_id;
+        }
+
+        if ($request->category_id) {
+            $category = \App\Models\FinancialCategory::find($request->category_id);
+            $validated['category'] = $category->name;
+            // Force type to match category type
+            $validated['type'] = $category->type;
+        } else {
+            $validated['category'] = null;
         }
 
         $finance->update($validated);
@@ -143,6 +158,11 @@ class FinancialTransactionController extends Controller
             $finance->organization_id != $user->organization_id
         ) {
             abort(403);
+        }
+
+        if ($finance->cash_payment_id) {
+            \App\Models\CashPayment::where('id', $finance->cash_payment_id)
+                ->update(['status' => 'unpaid', 'paid_at' => null]);
         }
 
         $finance->delete();

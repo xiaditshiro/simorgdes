@@ -25,10 +25,15 @@
                     <div>
                         <label class="block mb-2 text-sm font-medium text-slate-400">Organisasi</label>
                         <select name="organization_id"
-                            class="w-full rounded-xl border border-slate-700 bg-[#111827] px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition">
-                            <option value="">-- Pilih Organisasi --</option>
+                            class="w-full rounded-xl border border-slate-700 bg-[#111827] px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition"
+                            @if($organizations->count() == 1) style="pointer-events: none; opacity: 0.8;" tabindex="-1" @endif>
+                            @if($organizations->count() > 1)
+                                <option value="">-- Pilih Organisasi --</option>
+                            @endif
                             @foreach($organizations as $organization)
-                                <option value="{{ $organization->id }}">{{ $organization->name }}</option>
+                                <option value="{{ $organization->id }}" {{ $organizations->count() == 1 ? 'selected' : '' }}>
+                                    {{ $organization->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>

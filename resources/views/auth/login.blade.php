@@ -16,13 +16,8 @@
             {{-- Kiri --}}
             <div
                 class="hidden md:flex flex-col items-center justify-center bg-gradient-to-b from-cyan-400 to-cyan-500 rounded-r-[120px] px-10 text-white">
-                <h2 class="text-5xl font-bold text-center leading-tight">Hello, Welcome</h2>
-                <p class="mt-4 text-lg text-cyan-50">Don't have an Account</p>
-
-                <a href="{{ route('register') }}"
-                    class="mt-8 inline-block rounded-full border-2 border-white px-10 py-3 text-lg font-semibold text-white transition hover:bg-white hover:text-cyan-500">
-                    Register
-                </a>
+                <h2 class="text-5xl font-bold text-center leading-tight">Selamat Datang</h2>
+                <p class="mt-4 text-lg text-cyan-50">Silakan login untuk mengakses sistem</p>
             </div>
 
             {{-- Kanan --}}
@@ -42,7 +37,7 @@
                         <div>
                             <div class="relative">
                                 <input id="email" type="email" name="email" value="{{ old('email') }}" required
-                                    autofocus autocomplete="username" placeholder="Username"
+                                    autofocus autocomplete="username" placeholder="Email"
                                     class="w-full rounded-lg bg-gray-100 py-3 pl-4 pr-12 text-gray-800 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                                 <div
                                     class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-600">
@@ -97,28 +92,6 @@
                             Login
                         </button>
 
-                        <div class="pt-4 text-center">
-                            <p class="text-sm text-gray-500">or login with social platforms</p>
-
-                            <div class="mt-4 flex items-center justify-center gap-4">
-                                <button type="button"
-                                    class="flex h-12 w-12 items-center justify-center border border-gray-300 text-xl font-bold text-gray-700 hover:bg-gray-100">G</button>
-                                <button type="button"
-                                    class="flex h-12 w-12 items-center justify-center border border-gray-300 text-xl font-bold text-gray-700 hover:bg-gray-100">f</button>
-                                <button type="button"
-                                    class="flex h-12 w-12 items-center justify-center border border-gray-300 text-xl font-bold text-gray-700 hover:bg-gray-100">⌘</button>
-                                <button type="button"
-                                    class="flex h-12 w-12 items-center justify-center border border-gray-300 text-xl font-bold text-gray-700 hover:bg-gray-100">in</button>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 text-center md:hidden">
-                            <p class="text-sm text-gray-600">Don't have an Account?</p>
-                            <a href="{{ route('register') }}"
-                                class="mt-2 inline-block rounded-full border border-cyan-500 px-6 py-2 font-semibold text-cyan-500 hover:bg-cyan-500 hover:text-white">
-                                Register
-                            </a>
-                        </div>
                     </form>
                 </div>
             </div>

@@ -147,4 +147,106 @@ class ActivityAttendanceController extends Controller
             'member_name' => $member->full_name,
         ]);
     }
+
+    /**
+     * View for member to scan activity QR
+     */
+    public function selfScanner()
+    {
+        return view('activities.self-scanner');
+    }
+
+    /**
+     * Process self check-in from member scanning activity QR
+     */
+    public function selfScanStore(Request $request)
+    {
+        $user = auth()->user();
+        $member = $user->organizationMember;
+
+        if (!$member) {
+            return response()->json(['success' => false, 'message' => 'Akun Anda tidak terhubung ke data Anggota.'], 403);
+        }
+
+        $request->validate([
+            'qr_payload' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        try {
+            // Decrypt Activity ID
+            $activityId = Crypt::decryptString($request->qr_payload);
+            $activity = Activity::findOrFail($activityId);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'QR Kegiatan tidak valid.'], 422);
+        }
+
+        // 1. Validation: Organization match
+        if ($member->organization_id != $activity->organization_id) {
+            return response()->json(['success' => false, 'message' => 'Kegiatan ini bukan untuk organisasi Anda.'], 422);
+        }
+
+        // 2. Validation: GPS Radius (if activity has coordinates)
+        if ($activity->latitude && $activity->longitude) {
+            $distance = $this->calculateDistance(
+                $request->latitude,
+                $request->longitude,
+                $activity->latitude,
+                $activity->longitude
+            );
+
+            $radiusLimit = $activity->radius_meter ?? 50;
+            if ($distance > $radiusLimit) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => sprintf('Gagal! Lokasi Anda terlalu jauh (%.1f meter). Maksimal %d meter.', $distance, $radiusLimit)
+                ], 422);
+            }
+        }
+
+        // 3. Record Attendance
+        $attendance = ActivityAttendance::firstOrNew([
+            'activity_id' => $activity->id,
+            'member_id' => $member->id,
+        ]);
+
+        $attendance->status = 'hadir';
+        $attendance->checked_in_at = now();
+        $attendance->attendance_method = 'self_qr';
+        $attendance->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Absensi berhasil! Selamat mengikuti kegiatan ' . $activity->title,
+        ]);
+    }
+
+    /**
+     * Show Activity Login QR for admin to display
+     */
+    public function showActivityQr(Activity $activity)
+    {
+        $payload = Crypt::encryptString($activity->id);
+        return view('activities.activity-qr', compact('activity', 'payload'));
+    }
+
+    /**
+     * Haversine formula to calculate distance between two points in meters
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // meters
+
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lonDelta = deg2rad($lon2 - $lon1);
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
 }

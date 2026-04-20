@@ -120,8 +120,9 @@
                                 </td>
 
                                 <td class="px-4 py-4">
-                                    {{ $activity->activity_date }}
+                                    {{ $activity->activity_date->format('d/m/Y H:i') }}
                                 </td>
+
 
                                 <td class="px-4 py-4">
                                     @if($activity->status === 'completed')
@@ -147,30 +148,31 @@
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-4">
-                                    <div class="flex flex-wrap gap-2">
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    <div class="flex flex-wrap items-center gap-2">
                                         <a href="{{ route('activities.attendances.index', $activity->id) }}"
-                                            class="inline-flex items-center rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-xs font-medium text-white transition">
+                                            class="w-20 inline-flex items-center justify-center rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-[11px] font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20">
                                             Absensi
                                         </a>
 
                                         <a href="{{ route('activities.show', $activity->id) }}"
-                                            class="inline-flex items-center rounded-lg bg-slate-700 hover:bg-slate-600 px-3 py-2 text-xs font-medium text-white transition">
+                                            class="w-20 inline-flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 px-3 py-2 text-[11px] font-bold text-white transition-all hover:scale-105 active:scale-95 border border-slate-600">
                                             Detail
                                         </a>
 
                                         <a href="{{ route('activities.edit', $activity->id) }}"
-                                            class="inline-flex items-center rounded-lg bg-yellow-500 hover:bg-yellow-600 px-3 py-2 text-xs font-medium text-white transition">
+                                            class="w-20 inline-flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 px-3 py-2 text-[11px] font-bold text-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-yellow-500/20">
                                             Edit
                                         </a>
 
                                         <form action="{{ route('activities.destroy', $activity->id) }}" method="POST"
-                                            onsubmit="return confirm('Yakin ingin menghapus kegiatan ini?')">
+                                            onsubmit="return confirm('Yakin ingin menghapus kegiatan ini?')"
+                                            style="display: contents">
                                             @csrf
                                             @method('DELETE')
 
                                             <button type="submit"
-                                                class="inline-flex items-center rounded-lg bg-red-500 hover:bg-red-600 px-3 py-2 text-xs font-medium text-white transition">
+                                                class="w-20 inline-flex items-center justify-center rounded-lg bg-rose-500 hover:bg-rose-600 px-3 py-2 text-[11px] font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-rose-500/20">
                                                 Hapus
                                             </button>
                                         </form>
@@ -179,16 +181,27 @@
                             </tr>
                         @empty
                             <tr class="border-t border-slate-700/50">
-                                <td colspan="6" class="px-4 py-8 text-center text-slate-400">
-                                    Belum ada data kegiatan.
+                                <td colspan="6" class="px-4 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center space-y-3">
+                                        <div class="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center text-slate-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </div>
+                                        <p class="text-slate-400 font-medium">Belum ada data kegiatan untuk ditampilkan.</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+            @if($activities->hasPages())
+                <div class="px-4 py-4 border-t border-slate-700/50 bg-[#070b14]/50">
+                    {{ $activities->links() }}
+                </div>
+            @endif
         </div>
 
     </div>
 
 @endsection
+ction

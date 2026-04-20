@@ -2,78 +2,84 @@
 
 @section('content')
     <div class="space-y-6">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-white">Jadwal Kas</h2>
-                <p class="text-slate-400">Kelola jadwal pembayaran kas organisasi.</p>
+                <h2 class="text-3xl font-bold tracking-wide text-white">Jadwal Kas</h2>
+                <p class="text-slate-400 mt-1">Kelola jadwal pembayaran kas organisasi pada sistem.</p>
             </div>
 
             <a href="{{ route('cash.create') }}"
-                class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 text-white px-4 py-2 rounded-lg shadow">
+                class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-medium text-white shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:scale-[1.02] transition">
                 + Buat Jadwal Kas
             </a>
         </div>
 
         @if(session('success'))
-            <div class="mb-4 rounded bg-green-500/20 text-green-400 px-4 py-3 border border-green-500/30">
+            <div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-400 shadow-lg">
                 {{ session('success') }}
             </div>
         @endif
 
-        <div class="bg-[#0b1220] border border-slate-700 rounded-xl shadow overflow-hidden">
-            <table class="w-full border-collapse text-sm">
-                <thead class="bg-[#111827] text-slate-300">
-                    <tr>
-                        <th class="text-left px-4 py-3">No</th>
-                        <th class="text-left px-4 py-3">Organisasi</th>
-                        <th class="text-left px-4 py-3">Judul Kas</th>
-                        <th class="text-left px-4 py-3">Jumlah</th>
-                        <th class="text-left px-4 py-3">Total Jadwal</th>
-                        <th class="text-left px-4 py-3">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="text-slate-200">
-                    @forelse($groups as $group)
-                        <tr class="border-t border-slate-700 hover:bg-slate-800/40">
-                            <td class="px-4 py-3">{{ $loop->iteration }}</td>
-                            <td class="px-4 py-3">{{ $group->organization?->name }}</td>
-                            <td class="px-4 py-3 font-medium text-white">{{ $group->title }}</td>
-                            <td class="px-4 py-3">Rp {{ number_format($group->amount, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 text-xs rounded bg-cyan-500/20 text-cyan-400">
-                                    {{ $group->schedules->count() }} tanggal
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 flex gap-2">
-                                <a href="{{ route('cash.show', $group->id) }}"
-                                    class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1 rounded text-sm">
-                                    Detail
-                                </a>
-
-                                <a href="{{ route('cash.edit', $group->id) }}"
-                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm">
-                                    Edit
-                                </a>
-
-                                <form action="{{ route('cash.destroy', $group->id) }}" method="POST"
-                                    onsubmit="return confirm('Yakin ingin menghapus semua jadwal kas ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                                        Hapus
-                                    </button>
-                                </form>
-                            </td>
+        <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 shadow-lg overflow-hidden backdrop-blur-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-[#111827] text-slate-300">
+                        <tr>
+                            <th class="px-4 py-4">No</th>
+                            <th class="px-4 py-4">Organisasi</th>
+                            <th class="px-4 py-4">Judul Kas</th>
+                            <th class="px-4 py-4">Jumlah</th>
+                            <th class="px-4 py-4">Total Jadwal</th>
+                            <th class="px-4 py-4 text-center">Aksi</th>
                         </tr>
-                    @empty
-                        <tr class="border-t border-slate-700">
-                            <td colspan="6" class="px-4 py-6 text-center text-slate-400">
-                                Belum ada jadwal kas.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="bg-[#0b1220] text-slate-200">
+                        @forelse($groups as $group)
+                            <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
+                                <td class="px-4 py-4 text-slate-400 font-mono text-xs">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-4 text-slate-300">{{ $group->organization?->name }}</td>
+                                <td class="px-4 py-4 font-medium text-white">{{ $group->title }}</td>
+                                <td class="px-4 py-4 font-mono text-cyan-400">Rp {{ number_format($group->amount, 0, ',', '.') }}</td>
+                                <td class="px-4 py-4">
+                                    <span class="inline-block rounded-full bg-blue-500/20 text-blue-400 px-3 py-1 text-xs font-semibold border border-blue-500/30">
+                                        {{ $group->schedules->count() }} Jadwal
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <a href="{{ route('cash.show', $group->id) }}"
+                                            class="w-20 inline-flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 px-3 py-2 text-[11px] font-bold text-white transition-all hover:scale-105 active:scale-95 border border-slate-600">
+                                            Detail
+                                        </a>
+
+                                        <a href="{{ route('cash.edit', $group->id) }}"
+                                            class="w-20 inline-flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 px-3 py-2 text-[11px] font-bold text-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-yellow-500/20">
+                                            Edit
+                                        </a>
+
+                                        <form action="{{ route('cash.destroy', $group->id) }}" method="POST"
+                                            onsubmit="return confirm('Yakin ingin menghapus semua jadwal kas ini?')"
+                                            style="display: contents">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="w-20 inline-flex items-center justify-center rounded-lg bg-rose-500 hover:bg-rose-600 px-3 py-2 text-[11px] font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-rose-500/20">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr class="border-t border-slate-700/50">
+                                <td colspan="6" class="px-4 py-12 text-center text-slate-400 italic">
+                                    Belum ada data jadwal kas untuk ditampilkan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection

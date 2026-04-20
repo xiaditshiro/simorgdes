@@ -262,16 +262,18 @@
             <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
                 <h3 class="text-lg font-semibold text-white mb-4">Kegiatan Terbaru</h3>
 
-                @forelse($kegiatanTerbaru as $kegiatan)
-                    <div class="border-b border-slate-700/50 py-3">
-                        <div class="font-semibold text-white">{{ $kegiatan->title }}</div>
-                        <div class="text-sm text-slate-400">
-                            Tanggal: {{ $kegiatan->activity_date }}
+                <div class="max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                    @forelse($kegiatanTerbaru as $kegiatan)
+                        <div class="border-b border-slate-700/50 py-3">
+                            <div class="font-semibold text-white">{{ $kegiatan->title }}</div>
+                            <div class="text-sm text-slate-400">
+                                Tanggal: {{ $kegiatan->activity_date }}
+                            </div>
                         </div>
-                    </div>
-                @empty
-                    <p class="text-sm text-slate-400">Belum ada kegiatan.</p>
-                @endforelse
+                    @empty
+                        <p class="text-sm text-slate-400">Belum ada kegiatan.</p>
+                    @endforelse
+                </div>
             </div>
         </div>
 

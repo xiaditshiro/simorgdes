@@ -15,12 +15,29 @@ class DashboardController extends Controller
 {
     public function superAdmin()
     {
-        return view('dashboard.superadmin', [
-            'totalVillages' => Village::count(),
-            'totalOrganizations' => Organization::count(),
-            'totalMembers' => OrganizationMember::count(),
-            'totalUsers' => User::count(),
-        ]);
+        $totalVillages = Village::count();
+        $totalOrganizations = Organization::count();
+        $totalUsers = User::count();
+        $totalProposals = \App\Models\Proposal::count();
+
+        $recentVillages = Village::latest()->take(5)->get();
+        $recentOrganizations = Organization::with('village')->latest()->take(5)->get();
+
+        // Chart data: Orgs per village
+        $orgsPerVillage = Village::withCount('organizations')->having('organizations_count', '>', 0)->get();
+        $chartLabels = $orgsPerVillage->pluck('name');
+        $chartData = $orgsPerVillage->pluck('organizations_count');
+
+        return view('dashboard.superadmin', compact(
+            'totalVillages',
+            'totalOrganizations',
+            'totalUsers',
+            'totalProposals',
+            'recentVillages',
+            'recentOrganizations',
+            'chartLabels',
+            'chartData'
+        ));
     }
     public function ketua()
     {
@@ -57,7 +74,7 @@ class DashboardController extends Controller
 
         $kegiatanTerbaru = \App\Models\Activity::where('organization_id', $organizationId)
             ->latest()
-            ->take(5)
+            ->take(20)
             ->get();
 
         $transaksiTerbaru = \App\Models\FinancialTransaction::where('organization_id', $organizationId)
@@ -79,8 +96,8 @@ class DashboardController extends Controller
             ->whereHas('schedule.group', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
-            ->where('status', 'paid')
-            ->latest('paid_at')
+            ->where('status', 'unpaid')
+            ->latest()
             ->take(5)
             ->get();
 
@@ -185,8 +202,8 @@ class DashboardController extends Controller
             ->whereHas('schedule.group', function ($q) use ($organizationId) {
                 $q->where('organization_id', $organizationId);
             })
-            ->where('status', 'paid')
-            ->latest('paid_at')
+            ->where('status', 'unpaid')
+            ->latest()
             ->take(5)
             ->get();
 
@@ -261,13 +278,11 @@ class DashboardController extends Controller
         $totalPaid = $payments->where('status', 'paid')->count();
         $totalUnpaid = $payments->where('status', 'unpaid')->count();
 
-        $latestPayments = $payments
-            ->where('status', 'unpaid')
-            ->take(5);
+        $latestPayments = $payments->where('status', 'unpaid')->take(5);
 
         $latestActivities = \App\Models\Activity::where('organization_id', $organization->id)
             ->latest()
-            ->take(5)
+            ->take(20)
             ->get();
 
         return view('dashboard.anggota', compact(
@@ -292,7 +307,7 @@ class DashboardController extends Controller
 
         $latestActivities = Activity::where('organization_id', $organizationId)
             ->latest()
-            ->take(5)
+            ->take(20)
             ->get();
 
         $myMember = $user->organizationMember;

@@ -20,7 +20,7 @@ class FinancialTransaction extends Model
     ];
 
     protected $casts = [
-        'transaction_date' => 'date',
+        'transaction_date' => 'datetime',
         'amount' => 'decimal:2',
     ];
 

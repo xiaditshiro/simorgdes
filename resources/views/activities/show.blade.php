@@ -37,16 +37,29 @@
                 <div>
                     <p class="text-sm text-slate-400">Tanggal</p>
                     <p class="text-white font-semibold">
-                        {{ $activity->activity_date }}
+                        {{ $activity->activity_date->format('d/m/Y H:i') }}
                     </p>
+
                 </div>
 
                 <div>
                     <p class="text-sm text-slate-400">Lokasi</p>
-                    <p class="text-white font-semibold">
+                    <p class="text-white font-semibold flex items-center gap-2">
                         {{ $activity->location }}
+                        @if($activity->latitude && $activity->longitude)
+                            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">GPS Aktif</span>
+                        @endif
                     </p>
                 </div>
+
+                @if($activity->latitude && $activity->longitude)
+                <div>
+                    <p class="text-sm text-slate-400">Koordinat (Lat, Lng)</p>
+                    <p class="text-slate-300 font-mono text-xs">
+                        {{ $activity->latitude }}, {{ $activity->longitude }}
+                    </p>
+                </div>
+                @endif
 
                 <div>
                     <p class="text-sm text-slate-400">Status</p>
@@ -71,6 +84,8 @@
                 <p class="text-slate-200 leading-relaxed">
                     {{ $activity->description ?? '-' }}
                 </p>
+            </div>
+
             </div>
 
         </div>

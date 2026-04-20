@@ -12,22 +12,98 @@ use Illuminate\Support\Str;
 
 class OrganizationMemberController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
-        if ($user->hasRole('super_admin') || $user->hasRole('admin_desa')) {
-            $members = OrganizationMember::with('organization')
-                ->latest()
-                ->get();
+        $query = OrganizationMember::with('organization');
+
+        if (!$user->hasRole('super_admin') && !$user->hasRole('admin_desa')) {
+            $query->where('organization_id', $user->organization_id);
         } else {
-            $members = OrganizationMember::with('organization')
-                ->where('organization_id', $user->organization_id)
-                ->latest()
-                ->get();
+            $organizations = \App\Models\Organization::orderBy('name')->get();
+            if ($request->filled('organization_id')) {
+                $query->where('organization_id', $request->organization_id);
+            }
         }
 
-        return view('members.index', compact('members'));
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $search = $request->search;
+                $q->where('full_name', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%");
+            });
+        }
+        
+        if ($request->filled('position')) {
+            $query->where('position', $request->position);
+        }
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        if ($request->get('export') == 'csv') {
+            return $this->exportCsv($query->latest()->get());
+        }
+
+        $members = $query->latest()->paginate(10);
+        
+        $viewData = compact('members');
+        if (isset($organizations)) {
+            $viewData['organizations'] = $organizations;
+        }
+
+        return view('members.index', $viewData);
+    }
+
+    private function exportCsv($members)
+    {
+        $fileName = 'data_anggota_' . date('Ymd_His') . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = [
+            'No', 'Nama Lengkap', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'No HP', 'Organisasi', 'Jabatan', 'Tanggal Bergabung', 'Status'
+        ];
+
+        $callback = function() use($members, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            
+            $no = 1;
+            foreach ($members as $member) {
+                $row = [
+                    $no++,
+                    $member->full_name,
+                    $member->nik ? "'" . $member->nik : '-',
+                    $member->gender === 'L' ? 'Laki-laki' : ($member->gender === 'P' ? 'Perempuan' : '-'),
+                    $member->birth_place ?? '-',
+                    $member->birth_date ? $member->birth_date->format('d-m-Y') : '-',
+                    $member->address ?? '-',
+                    $member->phone ? "'" . $member->phone : '-',
+                    $member->organization?->name ?? '-',
+                    ucfirst($member->position),
+                    $member->join_date ? $member->join_date->format('d-m-Y') : '-',
+                    ucfirst($member->status)
+                ];
+                fputcsv($file, $row);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -66,7 +142,29 @@ class OrganizationMemberController extends Controller
             $validated['organization_id'] = auth()->user()->organization_id;
         }
 
-        OrganizationMember::create($validated);
+        $member = OrganizationMember::create($validated);
+
+        // Backfill existing cash schedules for this organization starting from join date
+        try {
+            $joinDate = $member->join_date ?? now();
+            
+            $schedules = \App\Models\CashSchedule::whereHas('group', function($query) use ($member) {
+                $query->where('organization_id', $member->organization_id);
+            })
+            ->where('due_date', '>=', $joinDate)
+            ->get();
+
+            foreach ($schedules as $schedule) {
+                \App\Models\CashPayment::firstOrCreate([
+                    'cash_schedule_id' => $schedule->id,
+                    'member_id' => $member->id,
+                ], [
+                    'status' => 'unpaid',
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to backfill cash payments for new member: " . $e->getMessage());
+        }
 
         return redirect()
             ->route('members.index')
@@ -178,6 +276,11 @@ class OrganizationMemberController extends Controller
             $member->organization_id != $user->organization_id
         ) {
             abort(403, 'Anda tidak memiliki akses ke data ini.');
+        }
+
+        // Delete associated user if exists
+        if ($member->user_id) {
+            \App\Models\User::where('id', $member->user_id)->delete();
         }
 
         $member->delete();

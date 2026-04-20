@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Organization;
+use App\Models\OrganizationMember;
+use App\Models\Setting;
 use Illuminate\Http\Request;
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -40,7 +43,7 @@ class ActivityController extends Controller
             $query->where('title', 'like', '%' . $request->keyword . '%');
         }
 
-        $activities = $query->latest()->get();
+        $activities = $query->latest()->paginate(10)->withQueryString();
 
         if ($user->hasRole('super_admin') || $user->hasRole('admin_desa')) {
             $organizations = \App\Models\Organization::orderBy('name')->get();
@@ -71,6 +74,9 @@ class ActivityController extends Controller
             'title' => 'required|string|max:255',
             'activity_date' => 'required|date',
             'location' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'radius_meter' => 'required|integer|min:1|max:1000',
             'description' => 'nullable|string',
             'status' => 'required|in:draft,scheduled,completed,cancelled',
         ]);
@@ -81,7 +87,12 @@ class ActivityController extends Controller
             $validated['organization_id'] = $user->organization_id;
         }
 
-        Activity::create($validated);
+        $activity = Activity::create($validated);
+
+        // Send WhatsApp Notification if status is scheduled
+        if ($activity->status === 'scheduled') {
+            $this->notifyMembers($activity);
+        }
 
         return redirect()
             ->route('activities.index')
@@ -133,9 +144,14 @@ class ActivityController extends Controller
             'title' => 'required|string|max:255',
             'activity_date' => 'required|date',
             'location' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'radius_meter' => 'required|integer|min:1|max:1000',
             'description' => 'nullable|string',
             'status' => 'required|in:draft,scheduled,completed,cancelled',
         ]);
+
+        $oldStatus = $activity->status;
 
         if (!$user->hasRole('super_admin') && !$user->hasRole('admin_desa')) {
             $validated['organization_id'] = $user->organization_id;
@@ -143,10 +159,55 @@ class ActivityController extends Controller
 
         $activity->update($validated);
 
+        // Send notification if status changed to scheduled, or if still scheduled and updated
+        if ($activity->status === 'scheduled') {
+            $this->notifyMembers($activity);
+        }
+
         return redirect()
             ->route('activities.index')
             ->with('success', 'Kegiatan diperbarui.');
     }
+
+    /**
+     * Helper to send broadcast notification to organization members
+     */
+    protected function notifyMembers(Activity $activity)
+    {
+        $chatbotActive = \App\Models\Setting::get('chatbot_active', 'true') === 'true';
+        if (!$chatbotActive) return;
+
+        $members = \App\Models\OrganizationMember::where('organization_id', $activity->organization_id)
+            ->whereNotNull('phone')
+            ->get();
+
+        if ($members->isEmpty()) return;
+
+        $phones = $members->pluck('phone')->toArray();
+        $dateFormatted = $activity->activity_date->format('d/m/Y H:i');
+        
+        $message = "📢 *PENGUMUMAN KEGIATAN BARU*\n\n";
+
+        $message .= "Halo rekan-rekan *" . ($activity->organization->name ?? 'Organisasi') . "*,\n";
+        $message .= "Telah dijadwalkan kegiatan baru:\n\n";
+        $message .= "📌 *Kegiatan:* " . $activity->title . "\n";
+        $message .= "📅 *Tanggal:* " . $dateFormatted . "\n";
+        $message .= "📍 *Lokasi:* " . ($activity->location ?? 'Segera ditentukan') . "\n";
+        
+        if ($activity->latitude && $activity->longitude) {
+            $message .= "🗺️ *Peta:* https://www.google.com/maps/search/?api=1&query={$activity->latitude},{$activity->longitude}\n";
+        }
+
+        if ($activity->description) {
+            $message .= "\n📝 *Keterangan:* " . $activity->description . "\n";
+        }
+
+        $message .= "\nMohon kehadirannya tepat waktu. Terima kasih! 🙏";
+
+        $whatsapp = app(\App\Services\WhatsAppService::class);
+        $whatsapp->sendMassMessage($phones, $message);
+    }
+
 
     public function destroy(Activity $activity)
     {

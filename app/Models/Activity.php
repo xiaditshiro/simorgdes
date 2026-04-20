@@ -13,13 +13,17 @@ class Activity extends Model
         'title',
         'activity_date',
         'location',
+        'latitude',
+        'longitude',
+        'radius_meter',
         'description',
         'status',
     ];
 
     protected $casts = [
-        'activity_date' => 'date',
+        'activity_date' => 'datetime',
     ];
+
 
     public function organization(): BelongsTo
     {

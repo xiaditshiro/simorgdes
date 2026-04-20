@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Proposal;
 use App\Models\Organization;
 use Illuminate\Http\Request;
+use App\Services\WhatsAppService;
 
 class ProposalController extends Controller
 {
@@ -112,15 +113,73 @@ class ProposalController extends Controller
 
     public function approve(Proposal $proposal)
     {
+        $user = auth()->user();
+        $canApprove = false;
+        
+        if ($proposal->target_type === 'desa' && ($user->hasRole('admin_desa') || $user->hasRole('super_admin'))) {
+            $canApprove = true;
+        } elseif ($proposal->target_type === 'organization' && $proposal->target_organization_id == $user->organization_id) {
+            $canApprove = true;
+        } elseif ($user->hasRole('super_admin')) {
+            $canApprove = true;
+        }
+
+        // Pengirim tidak bisa menyetujui proposalnya sendiri (kecuali untuk test kalau super_admin)
+        if ($proposal->organization_id == $user->organization_id && !$user->hasRole('super_admin')) {
+            $canApprove = false;
+        }
+
+        if (!$canApprove) {
+            abort(403, 'Hanya penerima yang dapat menyetujui proposal ini.');
+        }
+
         $proposal->update([
             'status' => 'approved'
         ]);
+
+        // WhatsApp Notification
+        try {
+            $proposal->load(['organization', 'creator.organizationMember']);
+            $member = $proposal->creator->organizationMember ?? null;
+
+            if ($member && $member->phone) {
+                $waService = app(WhatsAppService::class);
+                $message = "✅ *Proposal Disetujui*\n\n" .
+                    "Judul: {$proposal->title}\n" .
+                    "Organisasi Pengirim: " . ($proposal->organization->name ?? '-') . "\n" .
+                    "Status: Disetujui\n\n" .
+                    "Silakan cek detailnya di aplikasi. Terima kasih.";
+                
+                $waService->sendMessage($member->phone, $message);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send WA notification for proposal: " . $e->getMessage());
+        }
 
         return back()->with('success', 'Proposal disetujui');
     }
 
     public function reject(Request $request, Proposal $proposal)
     {
+        $user = auth()->user();
+        $canApprove = false;
+        
+        if ($proposal->target_type === 'desa' && ($user->hasRole('admin_desa') || $user->hasRole('super_admin'))) {
+            $canApprove = true;
+        } elseif ($proposal->target_type === 'organization' && $proposal->target_organization_id == $user->organization_id) {
+            $canApprove = true;
+        } elseif ($user->hasRole('super_admin')) {
+            $canApprove = true;
+        }
+
+        if ($proposal->organization_id == $user->organization_id && !$user->hasRole('super_admin')) {
+            $canApprove = false;
+        }
+
+        if (!$canApprove) {
+            abort(403, 'Hanya penerima yang dapat menolak proposal ini.');
+        }
+
         $proposal->update([
             'status' => 'rejected',
             'admin_notes' => $request->admin_notes
@@ -143,9 +202,10 @@ class ProposalController extends Controller
             return back()->with('error', 'Proposal tidak bisa diedit karena sudah diproses.');
         }
 
-        $organizations = Organization::where('id', $user->organization_id)->get();
+        $senderOrganizations = Organization::where('id', $user->organization_id)->get();
+        $targetOrganizations = Organization::where('id', '!=', $user->organization_id)->orderBy('name')->get();
 
-        return view('proposals.edit', compact('proposal', 'organizations'));
+        return view('proposals.edit', compact('proposal', 'senderOrganizations', 'targetOrganizations'));
     }
     public function update(Request $request, Proposal $proposal)
     {
