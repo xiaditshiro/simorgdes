@@ -31,33 +31,82 @@
             </div>
         </div>
 
-        {{-- Summary Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="rounded-2xl border border-cyan-400/20 bg-[#0b1220]/90 p-5 shadow-[0_0_25px_rgba(59,130,246,0.12)]">
-                <p class="text-sm text-slate-400">Total Anggota</p>
-                <h3 class="text-3xl font-bold text-white mt-2">{{ $totalMembers }}</h3>
+        </div>
+
+        {{-- Analytics Overview --}}
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {{-- Line Chart: Income vs Expense --}}
+            <div class="xl:col-span-2 rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-white">Ikhtisar Keuangan (6 Bulan Terakhir)</h3>
+                    <div class="flex items-center gap-4 text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                            <span class="text-slate-400">Masuk</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                            <span class="text-slate-400">Keluar</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="canvasFinancialTrend"></canvas>
+                </div>
             </div>
 
-            <div class="rounded-2xl border border-blue-400/20 bg-[#0b1220]/90 p-5 shadow-[0_0_25px_rgba(59,130,246,0.12)]">
-                <p class="text-sm text-slate-400">Total Kegiatan</p>
-                <h3 class="text-3xl font-bold text-white mt-2">{{ $totalActivities }}</h3>
+            {{-- Pie Chart: Cash Discipline --}}
+            <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-white mb-6">Analisis Kas Anggota</h3>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="canvasCashDiscipline"></canvas>
+                </div>
+                <div class="mt-6">
+                    <div class="flex items-center justify-center gap-6">
+                        <div class="text-center">
+                            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Terbayar</p>
+                            <p class="text-lg font-bold text-emerald-400">Total</p>
+                        </div>
+                        <div class="w-px h-8 bg-slate-700"></div>
+                        <div class="text-center">
+                            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Tunggakan</p>
+                            <p class="text-lg font-bold text-rose-400">Total</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        {{-- Akses Cepat --}}
-        <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
-            <h3 class="text-lg font-semibold text-white mb-4">Akses Cepat</h3>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {{-- Pie Chart: Expense Composition --}}
+            <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-white mb-6">Distribusi Pengeluaran</h3>
+                <div class="h-72 flex items-center justify-center">
+                    <canvas id="canvasExpenseComposition"></canvas>
+                </div>
+            </div>
 
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('members.index') }}"
-                    class="inline-flex items-center rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-white font-medium shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:scale-[1.02] transition">
-                    Data Anggota
-                </a>
-
-                <a href="{{ route('activities.index') }}"
-                    class="inline-flex items-center rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-5 py-3 text-white font-medium shadow-[0_0_25px_rgba(16,185,129,0.30)] hover:scale-[1.02] transition">
-                    Kegiatan Organisasi
-                </a>
+            {{-- Kendali Cepat --}}
+            <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg flex flex-col justify-center">
+                <h3 class="text-lg font-semibold text-white mb-4">Kendali Cepat Sekretaris</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="{{ route('members.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-cyan-500/50 hover:bg-cyan-500/5 transition group">
+                        <span class="group-hover:text-cyan-400">Manajemen Anggota</span>
+                    </a>
+                    <a href="{{ route('activities.create') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-emerald-500/50 hover:bg-emerald-500/5 transition group">
+                        <span class="group-hover:text-emerald-400">Buat Kegiatan</span>
+                    </a>
+                    <a href="{{ route('proposals.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-blue-500/50 hover:bg-blue-500/5 transition group">
+                        <span class="group-hover:text-blue-400">Kelola Proposal</span>
+                    </a>
+                    <a href="{{ route('activities.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-purple-500/50 hover:bg-purple-500/5 transition group">
+                        <span class="group-hover:text-purple-400">Daftar Kegiatan</span>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -180,3 +229,102 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+
+    // 1. Line Chart: Financial Trend
+    const ctxTrend = document.getElementById('canvasFinancialTrend').getContext('2d');
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: @json($chartMonthlyLabels),
+            datasets: [
+                {
+                    label: 'Pemasukan',
+                    data: @json($chartMonthlyIncome),
+                    borderColor: '#06b6d4',
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#06b6d4',
+                    pointBorderColor: '#0b1220',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                },
+                {
+                    label: 'Pengeluaran',
+                    data: @json($chartMonthlyExpense),
+                    borderColor: '#f43f5e',
+                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#f43f5e',
+                    pointBorderColor: '#0b1220',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(51, 65, 85, 0.1)' },
+                    ticks: { callback: v => 'Rp ' + v.toLocaleString() }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 2. Doughnut Chart: Cash Discipline
+    const ctxDiscipline = document.getElementById('canvasCashDiscipline').getContext('2d');
+    new Chart(ctxDiscipline, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sudah Bayar', 'Belum Bayar'],
+            datasets: [{
+                data: @json($chartDisciplineData),
+                backgroundColor: ['#10b981', '#f43f5e'],
+                borderWidth: 0,
+                cutout: '75%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // 3. Pie Chart: Expense Composition
+    const ctxExpense = document.getElementById('canvasExpenseComposition').getContext('2d');
+    new Chart(ctxExpense, {
+        type: 'pie',
+        data: {
+            labels: @json($chartExpenseLabels),
+            datasets: [{
+                data: @json($chartExpenseData),
+                backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { padding: 20 } }
+            }
+        }
+    });
+</script>
+@endpush

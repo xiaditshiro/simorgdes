@@ -14,7 +14,7 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "Content-Type: application/json"
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-    "model" => "llama3-8b-8192",
+    "model" => "llama-3.3-70b-versatile",
     "messages" => [
         ["role" => "user", "content" => "Halo, apakah ini Groq? Jelaskan siapa kamu secara singkat."]
     ]

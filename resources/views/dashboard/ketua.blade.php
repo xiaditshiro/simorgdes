@@ -55,25 +55,77 @@
             </div>
         </div>
 
-        {{-- Akses Cepat --}}
-        <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
-            <h3 class="text-lg font-semibold text-white mb-4">Akses Cepat</h3>
+        {{-- Analytics Overview --}}
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {{-- Line Chart: Income vs Expense --}}
+            <div class="xl:col-span-2 rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-white">Trend Keuangan (6 Bulan Terakhir)</h3>
+                    <div class="flex items-center gap-4 text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                            <span class="text-slate-400">Pemasukan</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                            <span class="text-slate-400">Pengeluaran</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="canvasFinancialTrend"></canvas>
+                </div>
+            </div>
 
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('members.index') }}"
-                    class="inline-flex items-center rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-white font-medium shadow-[0_0_25px_rgba(59,130,246,0.35)] hover:scale-[1.02] transition">
-                    Data Anggota
-                </a>
+            {{-- Pie Chart: Cash Discipline --}}
+            <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-white mb-6">Kedisiplinan Bayar Kas</h3>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="canvasCashDiscipline"></canvas>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-400">Sudah Bayar</span>
+                        <span class="text-emerald-400 font-semibold">{{ $totalCashPaid }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-400">Belum Bayar</span>
+                        <span class="text-rose-400 font-semibold">{{ $totalCashUnpaid }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <a href="{{ route('activities.index') }}"
-                    class="inline-flex items-center rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-5 py-3 text-white font-medium shadow-[0_0_25px_rgba(16,185,129,0.30)] hover:scale-[1.02] transition">
-                    Kegiatan Organisasi
-                </a>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {{-- Pie Chart: Expense Composition --}}
+            <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
+                <h3 class="text-lg font-semibold text-white mb-6">Komposisi Pengeluaran</h3>
+                <div class="h-72 flex items-center justify-center">
+                    <canvas id="canvasExpenseComposition"></canvas>
+                </div>
+            </div>
 
-                <a href="{{ route('cash.index') }}"
-                    class="inline-flex items-center rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-5 py-3 text-white font-medium shadow-[0_0_25px_rgba(234,179,8,0.30)] hover:scale-[1.02] transition">
-                    Kas Anggota
-                </a>
+            {{-- Akses Cepat --}}
+            <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg flex flex-col justify-center">
+                <h3 class="text-lg font-semibold text-white mb-4">Kendali Cepat</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="{{ route('members.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-cyan-500/50 hover:bg-cyan-500/5 transition group">
+                        <span class="group-hover:text-cyan-400">Data Anggota</span>
+                    </a>
+                    <a href="{{ route('activities.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-emerald-500/50 hover:bg-emerald-500/5 transition group">
+                        <span class="group-hover:text-emerald-400">Kegiatan</span>
+                    </a>
+                    <a href="{{ route('cash.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-yellow-500/50 hover:bg-yellow-500/5 transition group">
+                        <span class="group-hover:text-yellow-400">Jadwal Kas</span>
+                    </a>
+                    <a href="{{ route('finance.index') }}"
+                        class="inline-flex items-center justify-center rounded-xl bg-[#0d1320] border border-slate-700/60 p-4 text-white font-medium hover:border-purple-500/50 hover:bg-purple-500/5 transition group">
+                        <span class="group-hover:text-purple-400">Keuangan</span>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -148,51 +200,6 @@
             @endif
         </div>
 
-        {{-- Kas Terbaru --}}
-        <div class="rounded-2xl border border-slate-700/60 bg-[#0b1220]/90 p-6 shadow-lg">
-            <h3 class="text-lg font-semibold text-white mb-4">Kas Terbaru</h3>
-
-            @if($latestCashPayments->count())
-                <div class="overflow-x-auto rounded-2xl border border-slate-700/50">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-[#111827] text-slate-300">
-                            <tr>
-                                <th class="px-4 py-4">Judul Kas</th>
-                                <th class="px-4 py-4">Tanggal</th>
-                                <th class="px-4 py-4">Jumlah</th>
-                                <th class="px-4 py-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-[#0b1220] text-slate-200">
-                            @foreach($latestCashPayments as $payment)
-                                <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
-                                    <td class="px-4 py-4">{{ $payment->schedule?->group?->title ?? '-' }}</td>
-                                    <td class="px-4 py-4">
-                                        {{ $payment->schedule?->due_date?->format('d-m-Y') ?? '-' }}
-                                    </td>
-                                    <td class="px-4 py-4">
-                                        Rp {{ number_format($payment->schedule?->group?->amount ?? 0, 0, ',', '.') }}
-                                    </td>
-                                    <td class="px-4 py-4">
-                                        @if($payment->status === 'paid')
-                                            <span class="inline-block rounded-full bg-emerald-500/20 text-emerald-400 px-3 py-1 text-xs font-semibold border border-emerald-500/30">
-                                                Sudah Bayar
-                                            </span>
-                                        @else
-                                            <span class="inline-block rounded-full bg-rose-500/20 text-rose-400 px-3 py-1 text-xs font-semibold border border-rose-500/30">
-                                                Belum Bayar
-                                            </span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="text-slate-400">Belum ada data kas.</p>
-            @endif
-        </div>
 
         {{-- Proposal --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -305,3 +312,121 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Global Config for Chart.js
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+
+    // 1. Line Chart: Financial Trend
+    const ctxTrend = document.getElementById('canvasFinancialTrend').getContext('2d');
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: @json($chartMonthlyLabels),
+            datasets: [
+                {
+                    label: 'Pemasukan',
+                    data: @json($chartMonthlyIncome),
+                    borderColor: '#06b6d4',
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#06b6d4',
+                    pointBorderColor: '#0b1220',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Pengeluaran',
+                    data: @json($chartMonthlyExpense),
+                    borderColor: '#f43f5e',
+                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#f43f5e',
+                    pointBorderColor: '#0b1220',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(51, 65, 85, 0.2)' },
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // 2. Pie Chart: Cash Discipline
+    const ctxDiscipline = document.getElementById('canvasCashDiscipline').getContext('2d');
+    new Chart(ctxDiscipline, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sudah Bayar', 'Belum Bayar'],
+            datasets: [{
+                data: @json($chartDisciplineData),
+                backgroundColor: ['#10b981', '#f43f5e'],
+                hoverBackgroundColor: ['#059669', '#e11d48'],
+                borderWidth: 0,
+                cutout: '75%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // 3. Pie Chart: Expense Composition
+    const ctxExpense = document.getElementById('canvasExpenseComposition').getContext('2d');
+    new Chart(ctxExpense, {
+        type: 'pie',
+        data: {
+            labels: @json($chartExpenseLabels),
+            datasets: [{
+                data: @json($chartExpenseData),
+                backgroundColor: [
+                    '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { padding: 20 }
+                }
+            }
+        }
+    });
+</script>
+@endpush

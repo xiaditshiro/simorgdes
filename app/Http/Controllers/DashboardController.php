@@ -124,7 +124,9 @@ class DashboardController extends Controller
                 ->take(5);
         }
 
-        return view('dashboard.ketua', compact(
+        $chartData = $this->getChartData($organizationId);
+
+        return view('dashboard.ketua', array_merge(compact(
             'organization',
             'totalMembers',
             'totalActivities',
@@ -144,7 +146,7 @@ class DashboardController extends Controller
             'myTotalPaid',
             'myTotalUnpaid',
             'myLatestPayments'
-        ));
+        ), $chartData));
     }
     public function bendahara()
     {
@@ -230,7 +232,9 @@ class DashboardController extends Controller
                 ->take(5);
         }
 
-        return view('dashboard.bendahara', compact(
+        $chartData = $this->getChartData($organizationId);
+
+        return view('dashboard.bendahara', array_merge(compact(
             'organization',
             'totalMembers',
             'totalCashGroups',
@@ -248,7 +252,7 @@ class DashboardController extends Controller
             'myTotalPaid',
             'myTotalUnpaid',
             'myLatestPayments'
-        ));
+        ), $chartData));
     }
     public function anggota()
     {
@@ -333,7 +337,9 @@ class DashboardController extends Controller
                 ->take(5);
         }
 
-        return view('dashboard.sekretaris', compact(
+        $chartData = $this->getChartData($organizationId);
+
+        return view('dashboard.sekretaris', array_merge(compact(
             'organization',
             'totalMembers',
             'totalActivities',
@@ -343,7 +349,7 @@ class DashboardController extends Controller
             'myTotalPaid',
             'myTotalUnpaid',
             'myLatestPayments'
-        ));
+        ), $chartData));
     }
     public function desa()
     {
@@ -363,5 +369,60 @@ class DashboardController extends Controller
             'totalUsers',
             'latestOrganizations'
         ));
+    }
+
+    private function getChartData($organizationId)
+    {
+        // 1. Line Chart: Income vs Expense (Last 6 Months)
+        $months = [];
+        $incomeData = [];
+        $expenseData = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $months[] = $date->format('M Y');
+            
+            $income = \App\Models\FinancialTransaction::where('organization_id', $organizationId)
+                ->where('type', 'income')
+                ->whereMonth('transaction_date', $date->month)
+                ->whereYear('transaction_date', $date->year)
+                ->sum('amount');
+            
+            $expense = \App\Models\FinancialTransaction::where('organization_id', $organizationId)
+                ->where('type', 'expense')
+                ->whereMonth('transaction_date', $date->month)
+                ->whereYear('transaction_date', $date->year)
+                ->sum('amount');
+
+            $incomeData[] = (float) $income;
+            $expenseData[] = (float) $expense;
+        }
+
+        // 2. Pie Chart: Expense Composition
+        $expensesByCategory = \App\Models\FinancialTransaction::selectRaw('category, SUM(amount) as total')
+            ->where('organization_id', $organizationId)
+            ->where('type', 'expense')
+            ->groupBy('category')
+            ->get();
+
+        $expenseLabels = $expensesByCategory->pluck('category')->map(fn($c) => $c ?? 'Lainnya');
+        $expenseValues = $expensesByCategory->pluck('total')->map(fn($v) => (float) $v);
+
+        // 3. Pie Chart: Cash Discipline
+        $cashPayments = \App\Models\CashPayment::whereHas('schedule.group', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        })->get();
+
+        $paidCount = $cashPayments->where('status', 'paid')->count();
+        $unpaidCount = $cashPayments->where('status', 'unpaid')->count();
+
+        return [
+            'chartMonthlyLabels' => $months,
+            'chartMonthlyIncome' => $incomeData,
+            'chartMonthlyExpense' => $expenseData,
+            'chartExpenseLabels' => $expenseLabels,
+            'chartExpenseData' => $expenseValues,
+            'chartDisciplineData' => [$paidCount, $unpaidCount]
+        ];
     }
 }
