@@ -175,7 +175,7 @@
                         <tbody class="bg-[#0b1220] text-slate-200">
                             @forelse($members as $index => $member)
                                 @php
-                                    $savedStatus = $attendanceMap[$member->id]->status ?? 'hadir';
+                                    $savedStatus = $attendanceMap[$member->id]->status ?? 'tidak_hadir';
                                 @endphp
                                 <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
                                     <td class="px-4 py-4">{{ $index + 1 }}</td>
