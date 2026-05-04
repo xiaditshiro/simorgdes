@@ -86,5 +86,27 @@ ngrok http 8000
 ---
 
 <div align="center">
+  <h2>🎓 Tim Pengembang</h2>
+  
+  <!-- Gambar Profil GitHub Anda (Otomatis dari Username xiaditshiro) -->
+  <img src="https://avatars.githubusercontent.com/xiaditshiro" width="100" style="border-radius: 50%; margin-bottom: 10px;">
+  <br>
+
+  **PROGRAM STUDI TEKNOLOGI INFORMASI**<br>
+  **INSTITUT TEKNOLOGI DAN BISNIS STIKOM BALI**<br>
+  *Tahun Pembelajaran 2026*
+
+  <br>
+
+  | Nama Mahasiswa | NIM |
+  | :--- | :---: |
+  | **I Gede Aditya Wira Pranata** | `230040097` |
+  | **Made Aldi Ruskita Salahin** | `230040070` |
+
+</div>
+
+---
+
+<div align="center">
   Dibuat dengan ❤️ untuk kemajuan Organisasi Desa
 </div>
